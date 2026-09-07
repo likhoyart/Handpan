@@ -1055,45 +1055,6 @@
   }
 
 
-  .credits-panel{
-    position:fixed;
-    inset:0;
-    z-index:9000;
-    display:grid;
-    place-items:center;
-    padding:24px;
-    background:rgba(4,5,6,.72);
-    backdrop-filter:blur(16px);
-    opacity:0;
-    visibility:hidden;
-    transition:opacity .22s ease, visibility .22s;
-  }
-  .credits-panel.open{opacity:1;visibility:visible}
-  .credits-card{
-    position:relative;
-    width:min(520px,92vw);
-    padding:28px;
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:16px;
-    background:rgba(16,18,21,.94);
-    color:#9198a1;
-    font-size:11px;
-    line-height:1.7;
-  }
-  .credits-title{
-    margin-bottom:13px;
-    color:#e7eaee;
-    font-size:10px;
-    letter-spacing:.16em;
-  }
-  .credits-card p{margin:8px 0 0}
-  #creditsClose{
-    position:absolute;
-    right:14px;top:11px;
-    border:0;background:none;color:#9ba2ab;
-    font:400 22px Manrope,sans-serif;cursor:pointer;
-  }
-
 
   .pan-image-dark{
     object-fit:contain !important;
@@ -1211,6 +1172,42 @@
     }
   }
 
+
+  html{
+    width:100%;
+    min-height:100%;
+    background:#000 !important;
+    overscroll-behavior:none;
+  }
+
+  body{
+    width:100%;
+    min-height:100dvh;
+    background:#000 !important;
+    overscroll-behavior:none;
+  }
+
+  body::before{
+    content:"";
+    position:fixed;
+    inset:-100px;
+    background:#000;
+    z-index:-9999;
+    pointer-events:none;
+  }
+
+  .app{
+    width:100%;
+    min-height:100dvh;
+    background:
+      radial-gradient(circle at 50% 42%, #15181d 0%, #0d0f12 44%, #000 100%) !important;
+  }
+
+  body.artplay-mode .app{
+    background:
+      radial-gradient(circle at 50% 42%, #171113 0%, #0d0b0d 45%, #000 100%) !important;
+  }
+
 </style>
 </head>
 <body class="hide-symbols">
@@ -1265,7 +1262,7 @@
 </main>
 
   <footer>
-    <div class="hint"><button id="symbolsBtn" type="button">show symbols</button><button id="motionBtn" class="motion-toggle" type="button">motion on</button><button id="creditsBtn" class="motion-toggle" type="button">credits</button>
+    <div class="hint"><button id="symbolsBtn" type="button">show symbols</button><button id="motionBtn" class="motion-toggle" type="button">motion on</button>
       <span class="desktop-hint">play with keyboard · A S D F J K L ; · Space = Ding</span><span class="mobile-hint">tap the tone fields to play</span>
       
     </div>
@@ -1332,9 +1329,6 @@
   let artplayMode = false;
   const symbolsBtn = document.getElementById('symbolsBtn');
   const motionBtn = document.getElementById('motionBtn');
-  const creditsBtn = document.getElementById('creditsBtn');
-  const creditsPanel = document.getElementById('creditsPanel');
-  const creditsClose = document.getElementById('creditsClose');
   const panWrap = document.querySelector('.pan-image-wrap');
   const specularDisc = document.querySelector('.specular-disc');
 
@@ -1906,7 +1900,7 @@
     const note = tone.dataset.note;
 
     if(artplayMode && note === 'D3'){
-      window.open('https://www.instagram.com/likhoy_art/', '_blank', 'noopener,noreferrer');
+      window.location.href = 'https://www.instagram.com/likhoy_art/';
       animateTone(tone);
       triggerUnderglow();
       return;
@@ -1936,11 +1930,13 @@
       : 'hide symbols';
   });
 
-  let motionEnabled = true;
-  let motionPermissionAsked = false;
+
+
+
+  let motionEnabled = false;
+  let motionPermissionGranted = false;
 
   function setHighlightFromNormalized(nx, ny){
-    // nx/ny roughly -1..1
     const x = 50 + nx * 22;
     const y = 48 + ny * 20;
     const ang = 125 + nx * 28 - ny * 16;
@@ -1949,75 +1945,89 @@
     specularDisc.style.setProperty('--glow-angle', `${ang}deg`);
   }
 
-  async function ensureMotionPermission(){
-    if(motionPermissionAsked) return;
-    motionPermissionAsked = true;
+  function handleOrientation(e){
+    if(!motionEnabled) return;
+    const gamma = Math.max(-40, Math.min(40, Number(e.gamma) || 0)) / 40;
+    const betaRaw = Number(e.beta) || 0;
+
+    // Normalize portrait / typical handheld tilt.
+    let beta = 0;
+    if(betaRaw > 45 && betaRaw < 135){
+      beta = (betaRaw - 90) / 45;
+    }else{
+      beta = Math.max(-40, Math.min(40, betaRaw)) / 40;
+    }
+
+    setHighlightFromNormalized(gamma, Math.max(-1, Math.min(1, beta)));
+  }
+
+  async function requestMotionAccess(){
     try{
+      let granted = true;
+
       if(typeof DeviceOrientationEvent !== 'undefined' &&
          typeof DeviceOrientationEvent.requestPermission === 'function'){
-        const result = await DeviceOrientationEvent.requestPermission();
-        if(result !== 'granted'){
-          motionEnabled = false;
-          motionBtn.textContent = 'motion off';
-          panWrap.classList.add('motion-disabled');
-        }
+        const r = await DeviceOrientationEvent.requestPermission();
+        granted = granted && r === 'granted';
       }
+
+      if(typeof DeviceMotionEvent !== 'undefined' &&
+         typeof DeviceMotionEvent.requestPermission === 'function'){
+        const r = await DeviceMotionEvent.requestPermission();
+        granted = granted && r === 'granted';
+      }
+
+      if(!granted){
+        motionEnabled = false;
+        motionPermissionGranted = false;
+        motionBtn.textContent = 'motion blocked';
+        panWrap.classList.add('motion-disabled');
+        return false;
+      }
+
+      motionPermissionGranted = true;
+      motionEnabled = true;
+      panWrap.classList.remove('motion-disabled');
+      motionBtn.textContent = 'motion on';
+      return true;
     }catch(err){
-      console.warn('Motion permission unavailable', err);
+      console.warn('Motion permission failed', err);
+      motionEnabled = false;
+      motionBtn.textContent = 'motion unavailable';
+      panWrap.classList.add('motion-disabled');
+      return false;
     }
   }
 
-  window.addEventListener('deviceorientation', e => {
-    if(!motionEnabled) return;
-    const gamma = Math.max(-35, Math.min(35, e.gamma || 0)) / 35;
-    const betaRaw = (e.beta || 0);
-    const beta = Math.max(-35, Math.min(35, betaRaw)) / 35;
-    setHighlightFromNormalized(gamma, beta);
-  }, true);
+  window.addEventListener('deviceorientation', handleOrientation, true);
 
+  // Desktop fallback: reflection follows the pointer.
   panWrap.addEventListener('pointermove', e => {
-    if(!motionEnabled || e.pointerType === 'touch') return;
+    if(e.pointerType === 'touch') return;
     const r = panWrap.getBoundingClientRect();
     const nx = ((e.clientX - r.left) / r.width - .5) * 2;
     const ny = ((e.clientY - r.top) / r.height - .5) * 2;
     setHighlightFromNormalized(nx, ny);
   });
 
-  panWrap.addEventListener('pointerleave', () => {
-    if(!motionEnabled) return;
-    setHighlightFromNormalized(-.35, -.35);
-  });
-
-  creditsBtn.addEventListener('click', () => {
-    creditsPanel.classList.add('open');
-    creditsPanel.setAttribute('aria-hidden','false');
-  });
-  creditsClose.addEventListener('click', () => {
-    creditsPanel.classList.remove('open');
-    creditsPanel.setAttribute('aria-hidden','true');
-  });
-  creditsPanel.addEventListener('pointerdown', e => {
-    if(e.target === creditsPanel) creditsClose.click();
-  });
-
-  motionBtn.addEventListener('click', async () => {
-    if(!motionEnabled){
-      motionEnabled = true;
-      panWrap.classList.remove('motion-disabled');
-      motionBtn.textContent = 'motion on';
-      await ensureMotionPermission();
-    }else{
-      await ensureMotionPermission();
-      if(motionEnabled){
-        motionEnabled = false;
-        panWrap.classList.add('motion-disabled');
-        motionBtn.textContent = 'motion off';
-      }
+  panWrap.addEventListener('pointerleave', e => {
+    if(e.pointerType !== 'touch'){
+      setHighlightFromNormalized(-.35, -.35);
     }
   });
 
-  // On first touch, ask for iOS motion permission if needed.
-  panWrap.addEventListener('touchstart', ensureMotionPermission, {once:true, passive:true});
+  motionBtn.textContent = 'enable motion';
+
+  motionBtn.addEventListener('click', async () => {
+    if(!motionPermissionGranted){
+      await requestMotionAccess();
+      return;
+    }
+
+    motionEnabled = !motionEnabled;
+    panWrap.classList.toggle('motion-disabled', !motionEnabled);
+    motionBtn.textContent = motionEnabled ? 'motion on' : 'motion off';
+  });
 
   window.addEventListener('keydown', e => {
     if(e.repeat) return;
@@ -2031,15 +2041,6 @@
 
 })();
 </script>
-
-<div id="creditsPanel" class="credits-panel" aria-hidden="true">
-  <div class="credits-card">
-    <button id="creditsClose" type="button" aria-label="Close">×</button>
-    <div class="credits-title">FIELD RECORDINGS</div>
-    <p>Traffic — SchlurcherBot, CC BY-SA 4.0 · Construction — Dsw4, Public Domain · Train — PascalHD, CC BY 4.0 · Cafe — Marble Toast, CC0 · Airplane overhead — Wikimedia Commons field recording · Children — Panjamo, CC BY-SA 4.0 · Hammering — Work With Sounds / Boštjan Troha, CC BY 4.0 · Car alarm triggered on street — Damian Morys, CC BY 2.0 </p>
-    <p>Sources: Wikimedia Commons.</p>
-  </div>
-</div>
 
 </body>
 </html>
