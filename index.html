@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="preload" as="image" href="assets/handpan-light.webp" fetchpriority="high">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#090a0c"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Handpan</title>
+<link rel="stylesheet" href="assets/site.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+</head>
+<body class="hide-symbols">
+<div id="siteLoader" class="site-loader" aria-hidden="true">
+  <div class="site-loader-mark"><img class="site-loader-logo" decoding="async" fetchpriority="high" src="assets/logo.svg" width="50" height="50" alt=""></div>
+</div>
+
+<div class="app">
+  <header>
+    <div class="brand">HANDPAN</div>
+    <button class="status brandmark" id="artplayToggle" type="button" aria-pressed="false">LIKHOY ARTPLAY<span id="audioDot" hidden></span></button>
+  </header>
+
+  <main>
+    
+<div class="stage" aria-label="Interactive handpan">
+  <div class="pan-image-wrap"><div class="underglow" aria-hidden="true"></div>
+    <img class="pan-image pan-image-light" decoding="async" src="assets/handpan-light.webp" width="994" height="994" fetchpriority="high" loading="eager" alt="Polished aluminium handpan">
+    <img class="pan-image pan-image-dark" decoding="async" src="assets/handpan-dark.webp" width="1014" height="1014" fetchpriority="low" loading="eager" alt="Dark worn handpan">
+    <div class="specular-disc" aria-hidden="true"></div>
+    <button class="hit-zone ding-zone" data-note="D3" data-key="space" aria-label="Ding D3" style="--x:50.0%;--y:49.5%;">
+      <span class="note-mark">D</span>
+      <span class="desktop-key">SPACE</span>
+    </button>
+
+    <button class="hit-zone" data-note="A3" data-key="a" style="--x:35.1%;--y:17.5%;" aria-label="A3">
+      <span class="note-mark">A</span><span class="desktop-key">A</span>
+    </button>
+    <button class="hit-zone" data-note="Bb3" data-key="s" style="--x:65.4%;--y:17.5%;" aria-label="Bb3">
+      <span class="note-mark">B♭</span><span class="desktop-key">S</span>
+    </button>
+    <button class="hit-zone" data-note="C4" data-key="d" style="--x:82.7%;--y:33.7%;" aria-label="C4">
+      <span class="note-mark">C</span><span class="desktop-key">D</span>
+    </button>
+    <button class="hit-zone" data-note="D4" data-key="f" style="--x:83.6%;--y:59.9%;" aria-label="D4">
+      <span class="note-mark">D</span><span class="desktop-key">F</span>
+    </button>
+    <button class="hit-zone" data-note="E4" data-key="j" style="--x:66.1%;--y:81.4%;" aria-label="E4">
+      <span class="note-mark">E</span><span class="desktop-key">J</span>
+    </button>
+    <button class="hit-zone" data-note="F4" data-key="k" style="--x:34.2%;--y:81.5%;" aria-label="F4">
+      <span class="note-mark">F</span><span class="desktop-key">K</span>
+    </button>
+    <button class="hit-zone" data-note="G4" data-key="l" style="--x:16.6%;--y:59.8%;" aria-label="G4">
+      <span class="note-mark">G</span><span class="desktop-key">L</span>
+    </button>
+    <button class="hit-zone" data-note="A4" data-key=";" style="--x:17.3%;--y:34.0%;" aria-label="A4">
+      <span class="note-mark">A</span><span class="desktop-key">;</span>
+    </button>
+  </div>
+</div>
+</main>
+
+  <footer>
+    <div class="hint"><button id="symbolsBtn" type="button" aria-pressed="false">show symbols</button><button id="motionBtn" class="motion-toggle" type="button">motion on</button>
+      <span class="desktop-hint">play with keyboard · A S D F J K L ; · Space = Ding</span><span class="mobile-hint">tap the tone fields to play</span>
+      
+    </div>
+  </footer>
+</div>
+
+<script src="assets/app.js" defer></script>
+
+</body>
+</html>
